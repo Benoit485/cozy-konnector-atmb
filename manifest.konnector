@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "name": "ATMB autoroute télépéage",
+  "name": "ATMB",
   "type": "konnector",
   "language": "node",
   "icon": "favicon.ico",

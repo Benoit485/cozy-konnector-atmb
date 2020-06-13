@@ -6,7 +6,9 @@
     "type": "git",
     "url": "git@github.com:Benoit485/cozy-konnector-atmb.git"
   },
-  "keywords": ["atmb"],
+  "keywords": [
+    "atmb"
+  ],
   "author": "Benoît MERLE",
   "license": "AGPL-3.0",
   "main": "./src/index.js",
@@ -39,7 +41,7 @@
   "dependencies": {
     "cozy-konnector-libs": "^4.34.4",
     "moment": "^2.26.0",
-    "pdf2json": "^1.2.0"
+    "pdfjs-dist": "^2.4.456"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.1.1",

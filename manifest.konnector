@@ -7,7 +7,7 @@
   "slug": "atmb",
   "source": "git@github.com:Benoit485/cozy-konnector-atmb.git",
   "editor": "Benoît MERLE",
-  "vendor_link": "https://espaceabonnes.atmb.net",
+  "vendor_link": "https://espaceabonnes.atmb.net/",
   "categories": [
     "transport"
   ],

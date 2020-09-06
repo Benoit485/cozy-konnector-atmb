@@ -2,7 +2,7 @@
 
 // Require
 const { requestFactory, log } = require('cozy-konnector-libs')
-const pdf2json = require('pdf2json')
+const pdfjsLib = require('pdfjs-dist/es5/build/pdf.js')
 
 // Request
 const request = requestFactory({
@@ -12,32 +12,54 @@ const request = requestFactory({
   jar: true
 })
 
+// Get PDF text
+async function getText(buffer) {
+  const pdf = await pdfjsLib.getDocument(buffer).promise
+  const nbPages = pdf.numPages
+  const pageTextPromises = []
+  for (let idPage = 1; idPage <= nbPages; idPage++) {
+    pageTextPromises.push(getTextForPage(pdf, idPage))
+  }
+  const pageTexts = await Promise.all(pageTextPromises)
+  return pageTexts.join(' ')
+}
+
+// Get PDF text for page selected
+async function getTextForPage(pdf, idPage) {
+  const page = await pdf.getPage(idPage)
+  const tokenizedText = await page.getTextContent()
+  return tokenizedText.items.map(token => token.str).join('')
+}
+
 // Get amount from pdf
 function amountFrom(bill) {
   const url = bill.fileurl
 
-  return new Promise(async (resolve, reject) => {
-    let pdfParser = new pdf2json(this, 1)
+  return new Promise(async resolve => {
+    log('info', `Url : ${url}`, null, 'pdf')
 
-    let pdfPipe = await request(url).pipe(pdfParser)
+    const pdfBuffer = await request({ url: encodeURI(url), encoding: null })
 
-    pdfPipe.on('pdfParser_dataError', errData => {
-      log('error', errData.parserError)
+    getText(pdfBuffer)
+      .then(text => {
+        const match = text.match('Montant TTC facture(.+) €')
+        const amount = parseFloat(match[1])
 
-      reject(errData.parserError)
-    })
+        log('info', `Amount for ${url} : ${amount} €`, null, 'pdf')
 
-    pdfPipe.on('pdfParser_dataReady', () => {
-      const text = pdfParser.getRawTextContent()
-
-      const match = text.match('Montant TTC facture(.+) €')
-
-      const amount = parseFloat(match[1])
-
-      log('info', `Amount for ${url} : ${amount} €`)
-
-      resolve({ ...bill, amount })
-    })
+        resolve({ ...bill, amount })
+      })
+      .catch(err => {
+        log(
+          'error',
+          `Can not get text for ${url} because ${err}, contents : ${pdfBuffer.toString(
+            'utf-8'
+          )}`,
+          null,
+          'pdf'
+        )
+        resolve({ ...bill, amount: 0 })
+      })
   })
 }
 
